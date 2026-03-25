@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AyanFit | Premium Gym Management</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        heading: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: '#0a0a0a',
+                        darker: '#050505',
+                        panel: '#111111',
+                        neon: {
+                            green: '#00ffcc',
+                            blue: '#0066ff',
+                            red: '#ff0055'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Custom Styles & Glassmorphism */
+        body {
+            background-color: #050505;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 102, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 255, 204, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: rgba(17, 17, 17, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .neon-text-blue { text-shadow: 0 0 10px rgba(0, 102, 255, 0.7); }
+        .neon-text-green { text-shadow: 0 0 10px rgba(0, 255, 204, 0.7); }
+
+        .btn-neon {
+            background: linear-gradient(135deg, #0066ff, #00ffcc);
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-neon:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-neon-red {
+            background: linear-gradient(135deg, #ff0055, #ff5e62);
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn-neon-red:hover {
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0066ff; }
+
+        /* Form Inputs */
+        .input-dark {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+        }
+
+        /* Nav Item Hover */
+        .nav-item {
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(0, 102, 255, 0.1);
+            border-left: 3px solid #00ffcc;
+            color: #00ffcc;
+        }
+
+        /* Table Styles */
+        tr { transition: background 0.2s; }
+        tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #00ffcc;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #receipt-content, #receipt-content * { visibility: visible; }
+            #receipt-content { position: absolute; left: 0; top: 0; width: 100%; color: black; background: white; }
+            .glass { background: white; border: none; box-shadow: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-neon-green selection:text-dark">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center relative z-10">
+        <div class="glass p-10 rounded-2xl w-full max-w-md relative overflow-hidden">
+            <!-- decorative blur -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon-blue rounded-full filter blur-[60px] opacity-30"></div>
+            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-neon-green rounded-full filter blur-[60px] opacity-20"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <h1 class="font-heading text-4xl font-bold tracking-wider mb-2">
+                    <span class="text-white">Ayan</span><span class="text-neon-green neon-text-green">Fit</span>
+                </h1>
+                <p class="text-gray-400 text-sm">Gym Management System</p>
+            </div>
+
+            <form id="login-form" class="space-y-6 relative z-10">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-3 top-3.5 text-gray-500"></i>
+                        <input type="text" id="login-user" class="input-dark w-full rounded-lg py-3 pl-10 pr-4" placeholder="admin" required value="admin">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-3.5 text-gray-500"></i>
+                        <input type="password" id="login-pass" class="input-dark w-full rounded-lg py-3 pl-10 pr-4" placeholder="••••••••" required value="admin">
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center text-gray-400 cursor-pointer">
+                        <input type="checkbox" id="remember-me" class="mr-2 rounded border-gray-600 bg-gray-800 text-neon-green focus:ring-neon-green">
+                        Remember me
+                    </label>
+                </div>
+                <button type="submit" class="btn-neon w-full py-3 rounded-lg text-lg flex justify-center items-center gap-2">
+                    <span>Login</span>
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+            </form>
+            <p class="text-center text-xs text-gray-500 mt-6">Use admin / admin to login</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app-screen" class="hidden min-h-screen flex">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 glass border-r border-gray-800 flex flex-col h-screen sticky top-0 transition-transform duration-300 z-40" id="sidebar">
+            <div class="h-20 flex items-center justify-center border-b border-gray-800">
+                <h1 class="font-heading text-2xl font-bold tracking-wider">
+                    <span class="text-white">Ayan</span><span class="text-neon-green">Fit</span>
+                </h1>
+            </div>
+            <nav class="flex-1 py-6 overflow-y-auto">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" onclick="switchView('dashboard')" class="nav-item active flex items-center px-6 py-3 text-gray-300" data-view="dashboard">
+                            <i class="fas fa-chart-pie w-6"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="switchView('members')" class="nav-item flex items-center px-6 py-3 text-gray-300" data-view="members">
+                            <i class="fas fa-users w-6"></i> Members
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="switchView('fees')" class="nav-item flex items-center px-6 py-3 text-gray-300" data-view="fees">
+                            <i class="fas fa-file-invoice-dollar w-6"></i> Fees & Payments
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="switchView('classes')" class="nav-item flex items-center px-6 py-3 text-gray-300" data-view="classes">
+                            <i class="fas fa-calendar-alt w-6"></i> Classes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="switchView('trainers')" class="nav-item flex items-center px-6 py-3 text-gray-300" data-view="trainers">
+                            <i class="fas fa-dumbbell w-6"></i> Trainers
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="switchView('reports')" class="nav-item flex items-center px-6 py-3 text-gray-300" data-view="reports">
+                            <i class="fas fa-chart-line w-6"></i> Reports
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-4 border-t border-gray-800">
+                <div class="flex items-center gap-3 px-2">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-neon-blue to-neon-green flex items-center justify-center text-dark font-bold">
+                        AD
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold">Admin User</p>
+                        <p class="text-xs text-neon-green">Online</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-h-screen">
+            
+            <!-- Topbar -->
+            <header class="h-20 glass border-b border-gray-800 flex items-center justify-between px-8 sticky top-0 z-30">
+                <div class="flex items-center gap-4">
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h2 id="page-title" class="font-heading text-xl font-semibold text-white">Dashboard</h2>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="text-gray-400 hover:text-white relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-neon-red text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                        </button>
+                        <!-- Notif Dropdown -->
+                        <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 glass rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
+                            <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+                                <h3 class="font-semibold text-sm">Notifications</h3>
+                                <button onclick="clearNotifications()" class="text-xs text-neon-blue hover:text-white">Clear All</button>
+                            </div>
+                            <div id="notif-list" class="max-h-64 overflow-y-auto p-2">
+                                <!-- Notifs injected here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="logout()" class="text-gray-400 hover:text-neon-red transition-colors flex items-center gap-2 text-sm font-medium">
+                        <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Views Container -->
+            <div class="p-6 md:p-8 flex-1 overflow-x-hidden">
+                
+                <!-- DASHBOARD VIEW -->
+                <div id="view-dashboard" class="app-view space-y-8">
+                    <!-- Stats Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="glass p-6 rounded-2xl border-l-4 border-neon-blue relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity text-8xl text-neon-blue"><i class="fas fa-users"></i></div>
+                            <p class="text-gray-400 text-sm font-medium mb-1">Total Members</p>
+                            <h3 class="text-3xl font-bold font-heading" id="stat-total-members">0</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-neon-green relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity text-8xl text-neon-green"><i class="fas fa-check-circle"></i></div>
+                            <p class="text-gray-400 text-sm font-medium mb-1">Active Memberships</p>
+                            <h3 class="text-3xl font-bold font-heading" id="stat-active-members">0</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-emerald-400 relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity text-8xl text-emerald-400"><i class="fas fa-wallet"></i></div>
+                            <p class="text-gray-400 text-sm font-medium mb-1">Total Revenue (This Month)</p>
+                            <h3 class="text-3xl font-bold font-heading text-emerald-400" id="stat-revenue">$0</h3>
+                        </div>
+                        <div class="glass p-6 rounded-2xl border-l-4 border-neon-red relative overflow-hidden group">
+                            <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity text-8xl text-neon-red"><i class="fas fa-exclamation-circle"></i></div>
+                            <p class="text-gray-400 text-sm font-medium mb-1">Pending Fees</p>
+                            <h3 class="text-3xl font-bold font-heading text-neon-red" id="stat-pending">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Chart -->
+                        <div class="glass p-6 rounded-2xl lg:col-span-2">
+                            <h3 class="text-lg font-semibold mb-6 font-heading border-b border-gray-800 pb-3">Revenue Overview</h3>
+                            <div class="h-64">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="glass p-6 rounded-2xl">
+                            <h3 class="text-lg font-semibold mb-6 font-heading border-b border-gray-800 pb-3">Recent Activity</h3>
+                            <div class="space-y-4" id="recent-activity-list">
+                                <!-- Activity items injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MEMBERS VIEW -->
+                <div id="view-members" class="app-view hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div class="relative w-full sm:w-96">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-500"></i>
+                            <input type="text" id="search-members" class="input-dark w-full rounded-lg py-3 pl-10 pr-4" placeholder="Search members by name, phone...">
+                        </div>
+                        <button onclick="openModal('member-modal')" class="btn-neon px-6 py-3 rounded-lg flex items-center gap-2 w-full sm:w-auto">
+                            <i class="fas fa-plus"></i> Add Member
+                        </button>
+                    </div>
+
+                    <div class="glass rounded-2xl overflow-hidden overflow-x-auto">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead class="bg-black/40 border-b border-gray-800">
+                                <tr>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Name</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Contact</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Plan</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Join Date</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Expiry Date</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Status</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-table-body" class="divide-y divide-gray-800 text-sm">
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- FEES VIEW -->
+                <div id="view-fees" class="app-view hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold font-heading">Payment History</h3>
+                        <button onclick="openCollectFeeModal()" class="btn-neon px-6 py-3 rounded-lg flex items-center gap-2">
+                            <i class="fas fa-hand-holding-dollar"></i> Collect Fee
+                        </button>
+                    </div>
+                    
+                    <div class="glass rounded-2xl overflow-hidden overflow-x-auto">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead class="bg-black/40 border-b border-gray-800">
+                                <tr>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Receipt No</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Member</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Date</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Amount</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300">Method</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-300 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fees-table-body" class="divide-y divide-gray-800 text-sm">
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CLASSES VIEW -->
+                <div id="view-classes" class="app-view hidden space-y-6">
+                    <div class="flex justify-end">
+                        <button onclick="openModal('class-modal')" class="btn-neon px-6 py-3 rounded-lg flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Add Class
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="classes-grid">
+                        <!-- Cards injected via JS -->
+                    </div>
+                </div>
+
+                <!-- TRAINERS VIEW -->
+                <div id="view-trainers" class="app-view hidden space-y-6">
+                    <div class="flex justify-end">
+                        <button onclick="openModal('trainer-modal')" class="btn-neon px-6 py-3 rounded-lg flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Add Trainer
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="trainers-grid">
+                        <!-- Cards injected via JS -->
+                    </div>
+                </div>
+
+                <!-- REPORTS VIEW -->
+                <div id="view-reports" class="app-view hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="glass p-6 rounded-2xl">
+                            <h3 class="text-lg font-semibold mb-6 font-heading">Membership Status</h3>
+                            <div class="h-64 flex justify-center">
+                                <canvas id="membershipChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="glass p-6 rounded-2xl flex flex-col justify-center items-center text-center">
+                            <i class="fas fa-file-export text-6xl text-neon-blue mb-4 opacity-50"></i>
+                            <h3 class="text-xl font-heading mb-2">Export Data</h3>
+                            <p class="text-gray-400 text-sm mb-6">Download your complete gym database including members, payments, and schedules.</p>
+                            <button onclick="exportToCSV()" class="btn-neon px-8 py-3 rounded-lg flex items-center gap-2">
+                                <i class="fas fa-download"></i> Export to CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    
+    <!-- Member Modal -->
+    <div id="member-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="glass w-full max-w-2xl rounded-2xl p-6 relative">
+            <button onclick="closeModal('member-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <h2 class="text-2xl font-heading font-bold mb-6" id="member-modal-title">Add New Member</h2>
+            <form id="member-form" class="space-y-4">
+                <input type="hidden" id="member-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Full Name *</label>
+                        <input type="text" id="member-name" class="input-dark w-full rounded-lg py-2 px-3" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Contact Number *</label>
+                        <input type="text" id="member-phone" class="input-dark w-full rounded-lg py-2 px-3" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Email</label>
+                        <input type="email" id="member-email" class="input-dark w-full rounded-lg py-2 px-3">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Age & Gender</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="member-age" class="input-dark w-1/2 rounded-lg py-2 px-3" placeholder="Age" required>
+                            <select id="member-gender" class="input-dark w-1/2 rounded-lg py-2 px-3">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm text-gray-400 mb-1">Address</label>
+                        <input type="text" id="member-address" class="input-dark w-full rounded-lg py-2 px-3">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Plan Duration *</label>
+                        <select id="member-plan" class="input-dark w-full rounded-lg py-2 px-3">
+                            <option value="1">1 Month - $50</option>
+                            <option value="3">3 Months - $130</option>
+                            <option value="6">6 Months - $250</option>
+                            <option value="12">1 Year - $450</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Start Date *</label>
+                        <input type="date" id="member-start" class="input-dark w-full rounded-lg py-2 px-3" required>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-800">
+                    <button type="button" onclick="closeModal('member-modal')" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition">Cancel</button>
+                    <button type="submit" class="btn-neon px-5 py-2 rounded-lg">Save Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Collect Fee Modal -->
+    <div id="fee-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="glass w-full max-w-md rounded-2xl p-6 relative">
+            <button onclick="closeModal('fee-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <h2 class="text-2xl font-heading font-bold mb-6">Collect Fee</h2>
+            <form id="fee-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Select Member *</label>
+                    <select id="fee-member" class="input-dark w-full rounded-lg py-2 px-3" required>
+                        <!-- Options injected -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Amount ($) *</label>
+                    <input type="number" id="fee-amount" class="input-dark w-full rounded-lg py-2 px-3" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Payment Method *</label>
+                    <select id="fee-method" class="input-dark w-full rounded-lg py-2 px-3">
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Credit/Debit Card</option>
+                        <option value="Online">Online Transfer</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Date *</label>
+                    <input type="date" id="fee-date" class="input-dark w-full rounded-lg py-2 px-3" required>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-800">
+                    <button type="button" onclick="closeModal('fee-modal')" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition">Cancel</button>
+                    <button type="submit" class="btn-neon px-5 py-2 rounded-lg">Process Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt / Print Modal -->
+    <div id="receipt-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="glass w-full max-w-md rounded-2xl p-6 relative">
+            <button onclick="closeModal('receipt-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white no-print"><i class="fas fa-times text-xl"></i></button>
+            
+            <div id="receipt-content" class="bg-white text-black p-8 rounded-lg">
+                <div class="text-center mb-6 border-b-2 border-black pb-4">
+                    <h1 class="font-heading text-3xl font-bold uppercase tracking-wider">AyanFit</h1>
+                    <p class="text-sm text-gray-600">Premium Gym Management</p>
+                    <p class="text-sm text-gray-600">123 Fitness Street, Gym City</p>
+                </div>
+                <h2 class="text-xl font-bold text-center mb-6 underline">FEE RECEIPT</h2>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between"><span class="font-semibold">Receipt No:</span> <span id="r-no"></span></div>
+                    <div class="flex justify-between"><span class="font-semibold">Date:</span> <span id="r-date"></span></div>
+                    <div class="flex justify-between"><span class="font-semibold">Member Name:</span> <span id="r-name"></span></div>
+                    <div class="flex justify-between"><span class="font-semibold">Payment Method:</span> <span id="r-method"></span></div>
+                    <div class="border-t border-dashed border-gray-400 my-3"></div>
+                    <div class="flex justify-between text-lg font-bold"><span class="font-semibold">Amount Paid:</span> <span id="r-amount"></span></div>
+                </div>
+                
+                <div class="mt-8 text-center text-xs text-gray-500">
+                    <p>Thank you for your payment!</p>
+                    <p>Keep this slip for your records.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-6 no-print">
+                <button onclick="window.print()" class="btn-neon px-8 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-print"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        // --- DATA STATE ---
+        let db = {
+            members: [],
+            payments: [],
+            classes: [],
+            trainers: []
+        };
+        let charts = {};
+
+        // --- INIT & MOCK DATA SEEDING ---
+        function init() {
+            // Check auth
+            const isAuth = localStorage.getItem('ayanfit_auth');
+            if(isAuth === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                
+                seedMockData();
+                loadData();
+                switchView('dashboard');
+                updateMemberStatuses();
+                renderNotifications();
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
+            }
+
+            // Set default dates
+            document.getElementById('member-start').valueAsDate = new Date();
+            document.getElementById('fee-date').valueAsDate = new Date();
+        }
+
+        function seedMockData() {
+            if(localStorage.getItem('ayanfit_seeded')) return;
+            
+            const today = new Date();
+            const pastDate = new Date(today); pastDate.setMonth(today.getMonth() - 1);
+            const futureDate = new Date(today); futureDate.setMonth(today.getMonth() + 2);
+            const expiredDate = new Date(today); expiredDate.setDate(today.getDate() - 5);
+            const expiringSoon = new Date(today); expiringSoon.setDate(today.getDate() + 3);
+
+            db.members = [
+                { id: 'M101', name: 'John Doe', phone: '555-0101', email: 'john@example.com', age: 28, gender: 'Male', address: '123 Main St', plan: 3, startDate: pastDate.toISOString().split('T'), endDate: futureDate.toISOString().split('T'), status: 'Active' },
+                { id: 'M102', name: 'Jane Smith', phone: '555-0102', email: 'jane@example.com', age: 24, gender: 'Female', address: '456 Oak Ave', plan: 1, startDate: pastDate.toISOString().split('T'), endDate: expiredDate.toISOString().split('T'), status: 'Expired' },
+                { id: 'M103', name: 'Mike Johnson', phone: '555-0103', email: 'mike@example.com', age: 35, gender: 'Male', address: '789 Pine Rd', plan: 6, startDate: today.toISOString().split('T'), endDate: expiringSoon.toISOString().split('T'), status: 'Active' },
+            ];
+            
+            db.payments = [
+                { id: 'P1001', memberId: 'M101', amount: 130, date: pastDate.toISOString().split('T'), method: 'Card' },
+                { id: 'P1002', memberId: 'M102', amount: 50, date: pastDate.toISOString().split('T'), method: 'Cash' },
+                { id: 'P1003', memberId: 'M103', amount: 250, date: today.toISOString().split('T'), method: 'Online' },
+            ];
+
+            db.trainers = [
+                { id: 'T1', name: 'Alex Iron', phone: '555-0201', spec: 'Bodybuilding' },
+                { id: 'T2', name: 'Sarah Fit', phone: '555-0202', spec: 'Yoga & Cardio' }
+            ];
+
+            db.classes = [
+                { id: 'C1', name: 'Morning Bootcamp', trainer: 'Alex Iron', time: '07:00 AM', day: 'Mon, Wed, Fri' },
+                { id: 'C2', name: 'Evening Yoga', trainer: 'Sarah Fit', time: '06:00 PM', day: 'Tue, Thu' }
+            ];
+
+            saveData();
+            localStorage.setItem('ayanfit_seeded', 'true');
+        }
+
+        function loadData() {
+            db.members = JSON.parse(localStorage.getItem('ayanfit_members')) || [];
+            db.payments = JSON.parse(localStorage.getItem('ayanfit_payments')) || [];
+            db.classes = JSON.parse(localStorage.getItem('ayanfit_classes')) || [];
+            db.trainers = JSON.parse(localStorage.getItem('ayanfit_trainers')) || [];
+        }
+
+        function saveData() {
+            localStorage.setItem('ayanfit_members', JSON.stringify(db.members));
+            localStorage.setItem('ayanfit_payments', JSON.stringify(db.payments));
+            localStorage.setItem('ayanfit_classes', JSON.stringify(db.classes));
+            localStorage.setItem('ayanfit_trainers', JSON.stringify(db.trainers));
+        }
+
+        // --- AUTH ---
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-user').value;
+            const p = document.getElementById('login-pass').value;
+            if(u === 'admin' && p === 'admin') {
+                localStorage.setItem('ayanfit_auth', 'true');
+                showToast('Login successful!', 'success');
+                init();
+            } else {
+                showToast('Invalid credentials!', 'error');
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('ayanfit_auth');
+            init();
+        }
+
+        // --- NAVIGATION ---
+        function switchView(viewId) {
+            // Update nav styles
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.nav-item[data-view="${viewId}"]`).classList.add('active');
+            
+            // Toggle view divs
+            document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+            // Set Title
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'members': 'Member Management',
+                'fees': 'Fees & Payments',
+                'classes': 'Class Schedule',
+                'trainers': 'Trainer Management',
+                'reports': 'Analytics & Reports'
+            };
+            document.getElementById('page-title').innerText = titles[viewId];
+
+            // Render specific view data
+            if(viewId === 'dashboard') renderDashboard();
+            if(viewId === 'members') renderMembers();
+            if(viewId === 'fees') renderFees();
+            if(viewId === 'classes') renderClasses();
+            if(viewId === 'trainers') renderTrainers();
+            if(viewId === 'reports') renderReports();
+
+            // Mobile menu close
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        // Mobile Sidebar Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+            if(sidebar.classList.contains('absolute') === false) {
+                sidebar.classList.add('absolute', 'z-50', 'bg-panel');
+            }
+        });
+
+        // --- CORE LOGIC ---
+        function calculateEndDate(startDateStr, months) {
+            const d = new Date(startDateStr);
+            d.setMonth(d.getMonth() + parseInt(months));
+            return d.toISOString().split('T');
+        }
+
+        function updateMemberStatuses() {
+            const today = new Date().toISOString().split('T');
+            let changed = false;
+            db.members.forEach(m => {
+                if (m.endDate < today && m.status !== 'Expired') {
+                    m.status = 'Expired';
+                    changed = true;
+                } else if (m.endDate >= today && m.status !== 'Active') {
+                    m.status = 'Active';
+                    changed = true;
+                }
+            });
+            if(changed) saveData();
+        }
+
+        // --- DASHBOARD ---
+        function renderDashboard() {
+            document.getElementById('stat-total-members').innerText = db.members.length;
+            
+            const activeCount = db.members.filter(m => m.status === 'Active').length;
+            document.getElementById('stat-active-members').innerText = activeCount;
+
+            const pendingCount = db.members.filter(m => m.status === 'Expired').length;
+            document.getElementById('stat-pending').innerText = pendingCount;
+
+            // Calculate this month's revenue
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const monthlyRevenue = db.payments.reduce((sum, p) => {
+                const pd = new Date(p.date);
+                if(pd.getMonth() === currentMonth && pd.getFullYear() === currentYear) {
+                    return sum + Number(p.amount);
+                }
+                return sum;
+            }, 0);
+            document.getElementById('stat-revenue').innerText = `$${monthlyRevenue}`;
+
+            // Render Recent Activity (mix of new members and payments)
+            const activities = [];
+            db.members.slice(-3).forEach(m => activities.push({ date: m.startDate, text: `New member joined: <span class="text-white font-medium">${m.name}</span>`, icon: 'fa-user-plus text-neon-blue' }));
+            db.payments.slice(-3).forEach(p => {
+                const mName = db.members.find(m => m.id === p.memberId)?.name || 'Unknown';
+                activities.push({ date: p.date, text: `Payment of <span class="text-emerald-400 font-medium">$${p.amount}</span> received from ${mName}`, icon: 'fa-check-circle text-emerald-400' });
+            });
+            
+            activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const actHTML = activities.slice(0, 5).map(a => `
+                <div class="flex items-start gap-4 bg-black/20 p-3 rounded-lg border border-gray-800">
+                    <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mt-1"><i class="fas ${a.icon}"></i></div>
+                    <div>
+                        <p class="text-sm text-gray-300">${a.text}</p>
+                        <p class="text-xs text-gray-500 mt-1">${new Date(a.date).toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('recent-activity-list').innerHTML = actHTML || '<p class="text-gray-500 text-sm">No recent activity.</p>';
+
+            // Revenue Chart
+            renderRevenueChart();
+        }
+
+        function renderRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            if(charts.revenue) charts.revenue.destroy();
+
+            // Group by month (last 6 months)
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dataMap = {};
+            for(let i=5; i>=0; i--) {
+                const d = new Date(); d.setMonth(d.getMonth() - i);
+                dataMap[`${months[d.getMonth()]} ${d.getFullYear()}`] = 0;
+            }
+
+            db.payments.forEach(p => {
+                const pd = new Date(p.date);
+                const key = `${months[pd.getMonth()]} ${pd.getFullYear()}`;
+                if(dataMap[key] !== undefined) dataMap[key] += Number(p.amount);
+            });
+
+            charts.revenue = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(dataMap),
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: Object.values(dataMap),
+                        borderColor: '#00ffcc',
+                        backgroundColor: 'rgba(0, 255, 204, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#0066ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+                        x: { grid: { display: false }, ticks: { color: '#888' } }
+                    }
+                }
+            });
+        }
+
+        // --- MEMBERS ---
+        function renderMembers(filterText = '') {
+            const tbody = document.getElementById('members-table-body');
+            tbody.innerHTML = '';
+            
+            const filtered = db.members.filter(m => 
+                m.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                m.phone.includes(filterText)
+            );
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">No members found.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(m => {
+                const statusColor = m.status === 'Active' ? 'text-neon-green bg-green-900/30' : 'text-neon-red bg-red-900/30';
+                tbody.innerHTML += `
+                    <tr class="group">
+                        <td class="p-4"><div class="font-medium text-white">${m.name}</div><div class="text-xs text-gray-500">${m.id}</div></td>
+                        <td class="p-4">${m.phone}</td>
+                        <td class="p-4">${m.plan} Months</td>
+                        <td class="p-4">${new Date(m.startDate).toLocaleDateString()}</td>
+                        <td class="p-4">${new Date(m.endDate).toLocaleDateString()}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded text-xs ${statusColor}">${m.status}</span></td>
+                        <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="editMember('${m.id}')" class="text-neon-blue hover:text-white mx-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteMember('${m.id}')" class="text-neon-red hover:text-white"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('search-members').addEventListener('input', (e) => {
+            renderMembers(e.target.value);
+        });
+
+        document.getElementById('member-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('member-id').value;
+            const start = document.getElementById('member-start').value;
+            const plan = document.getElementById('member-plan').value;
+            const end = calculateEndDate(start, plan);
+
+            const memberData = {
+                id: id || 'M' + Date.now().toString().slice(-4),
+                name: document.getElementById('member-name').value,
+                phone: document.getElementById('member-phone').value,
+                email: document.getElementById('member-email').value,
+                age: document.getElementById('member-age').value,
+                gender: document.getElementById('member-gender').value,
+                address: document.getElementById('member-address').value,
+                plan: plan,
+                startDate: start,
+                endDate: end,
+                status: new Date(end) >= new Date() ? 'Active' : 'Expired'
+            };
+
+            if(id) {
+                const idx = db.members.findIndex(m => m.id === id);
+                db.members[idx] = memberData;
+                showToast('Member updated successfully', 'success');
+            } else {
+                db.members.push(memberData);
+                showToast('Member added successfully', 'success');
+            }
+
+            saveData();
+            closeModal('member-modal');
+            renderMembers();
+            renderDashboard();
+            updateMemberStatuses();
+        });
+
+        function editMember(id) {
+            const m = db.members.find(x => x.id === id);
+            if(!m) return;
+            document.getElementById('member-modal-title').innerText = 'Edit Member';
+            document.getElementById('member-id').value = m.id;
+            document.getElementById('member-name').value = m.name;
+            document.getElementById('member-phone').value = m.phone;
+            document.getElementById('member-email').value = m.email;
+            document.getElementById('member-age').value = m.age;
+            document.getElementById('member-gender').value = m.gender;
+            document.getElementById('member-address').value = m.address;
+            document.getElementById('member-plan').value = m.plan;
+            document.getElementById('member-start').value = m.startDate;
+            openModal('member-modal');
+        }
+
+        function deleteMember(id) {
+            if(confirm('Are you sure you want to delete this member?')) {
+                db.members = db.members.filter(m => m.id !== id);
+                saveData();
+                renderMembers();
+                renderDashboard();
+                showToast('Member deleted', 'success');
+            }
+        }
+
+        // --- FEES ---
+        function renderFees() {
+            const tbody = document.getElementById('fees-table-body');
+            tbody.innerHTML = '';
+            
+            db.payments.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(p => {
+                const m = db.members.find(x => x.id === p.memberId);
+                const mName = m ? m.name : 'Deleted Member';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-4 font-mono text-neon-blue">${p.id}</td>
+                        <td class="p-4 text-white">${mName}</td>
+                        <td class="p-4">${new Date(p.date).toLocaleDateString()}</td>
+                        <td class="p-4 font-bold text-emerald-400">$${p.amount}</td>
+                        <td class="p-4">${p.method}</td>
+                        <td class="p-4 text-right">
+                            <button onclick="showReceipt('${p.id}')" class="text-gray-400 hover:text-white px-3 py-1 bg-gray-800 rounded text-xs transition">View Slip</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openCollectFeeModal() {
+            const select = document.getElementById('fee-member');
+            select.innerHTML = '<option value="">-- Select Member --</option>';
+            db.members.forEach(m => {
+                const marker = m.status === 'Expired' ? ' (Pending Dues)' : '';
+                select.innerHTML += `<option value="${m.id}">${m.name} - ${m.phone}${marker}</option>`;
+            });
+            document.getElementById('fee-date').valueAsDate = new Date();
+            document.getElementById('fee-amount').value = '';
+            openModal('fee-modal');
+        }
+
+        document.getElementById('fee-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const memberId = document.getElementById('fee-member').value;
+            const amount = document.getElementById('fee-amount').value;
+            const date = document.getElementById('fee-date').value;
+            
+            const pId = 'P' + Date.now().toString().slice(-5);
+            db.payments.push({
+                id: pId,
+                memberId: memberId,
+                amount: amount,
+                method: document.getElementById('fee-method').value,
+                date: date
+            });
+
+            // Auto-extend membership if expired
+            const m = db.members.find(x => x.id === memberId);
+            if(m && m.status === 'Expired') {
+                m.startDate = date;
+                m.endDate = calculateEndDate(date, m.plan);
+                m.status = 'Active';
+            }
+
+            saveData();
+            closeModal('fee-modal');
+            renderFees();
+            renderDashboard();
+            showToast('Payment successful', 'success');
+            showReceipt(pId);
+        });
+
+        function showReceipt(pId) {
+            const p = db.payments.find(x => x.id === pId);
+            const m = db.members.find(x => x.id === p.memberId);
+            if(!p) return;
+
+            document.getElementById('r-no').innerText = p.id;
+            document.getElementById('r-date').innerText = new Date(p.date).toLocaleDateString();
+            document.getElementById('r-name').innerText = m ? m.name : 'Unknown';
+            document.getElementById('r-method').innerText = p.method;
+            document.getElementById('r-amount').innerText = `$${p.amount}`;
+
+            openModal('receipt-modal');
+        }
+
+        // --- CLASSES & TRAINERS (Simplified visual representations) ---
+        function renderClasses() {
+            const grid = document.getElementById('classes-grid');
+            grid.innerHTML = db.classes.map(c => `
+                <div class="glass p-5 rounded-xl border border-gray-800 hover:border-neon-blue transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="font-heading font-bold text-lg text-white">${c.name}</h4>
+                        <span class="bg-blue-900/30 text-neon-blue px-2 py-1 rounded text-xs">${c.time}</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-2"><i class="fas fa-user-tie w-5"></i> ${c.trainer}</p>
+                    <p class="text-sm text-gray-400"><i class="fas fa-calendar-day w-5"></i> ${c.day}</p>
+                    <div class="mt-4 pt-4 border-t border-gray-800 flex justify-end gap-2">
+                        <button class="text-neon-red text-sm hover:text-white" onclick="deleteClass('${c.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('') || '<p class="col-span-full text-gray-500">No classes scheduled.</p>';
+        }
+
+        function deleteClass(id) {
+            if(confirm('Delete this class?')) {
+                db.classes = db.classes.filter(c => c.id !== id);
+                saveData(); renderClasses();
+            }
+        }
+
+        function renderTrainers() {
+            const grid = document.getElementById('trainers-grid');
+            grid.innerHTML = db.trainers.map(t => `
+                <div class="glass p-5 rounded-xl text-center border border-gray-800 hover:border-neon-green transition">
+                    <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-neon-green to-neon-blue flex items-center justify-center text-2xl font-bold text-dark mb-4">
+                        ${t.name.charAt(0)}
+                    </div>
+                    <h4 class="font-heading font-bold text-lg text-white">${t.name}</h4>
+                    <p class="text-sm text-neon-green mb-2">${t.spec}</p>
+                    <p class="text-xs text-gray-400 mb-4">${t.phone}</p>
+                    <button class="text-neon-red text-sm hover:text-white" onclick="deleteTrainer('${t.id}')">Remove Trainer</button>
+                </div>
+            `).join('') || '<p class="col-span-full text-gray-500">No trainers added.</p>';
+        }
+
+        function deleteTrainer(id) {
+            if(confirm('Delete trainer?')) {
+                db.trainers = db.trainers.filter(t => t.id !== id);
+                saveData(); renderTrainers();
+            }
+        }
+
+        // --- REPORTS ---
+        function renderReports() {
+            const ctx = document.getElementById('membershipChart').getContext('2d');
+            if(charts.membership) charts.membership.destroy();
+
+            const active = db.members.filter(m => m.status === 'Active').length;
+            const expired = db.members.filter(m => m.status === 'Expired').length;
+
+            charts.membership = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active Members', 'Expired/Pending'],
+                    datasets: [{
+                        data: [active, expired],
+                        backgroundColor: ['#00ffcc', '#ff0055'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#e2e8f0' } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "ID,Name,Phone,Plan,StartDate,EndDate,Status\n";
+            db.members.forEach(m => {
+                csvContent += `${m.id},${m.name},${m.phone},${m.plan}M,${m.startDate},${m.endDate},${m.status}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "ayanfit_members_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Export successful!', 'success');
+        }
+
+        // --- NOTIFICATIONS & UTILS ---
+        function renderNotifications() {
+            const today = new Date();
+            const list = document.getElementById('notif-list');
+            let notifs = [];
+
+            db.members.forEach(m => {
+                const endDate = new Date(m.endDate);
+                const diffTime = endDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if(m.status === 'Expired') {
+                    notifs.push(`<div class="p-3 border-b border-gray-700 text-sm"><span class="text-neon-red font-bold">Pending Fee:</span> ${m.name}'s membership expired on ${new Date(m.endDate).toLocaleDateString()}.</div>`);
+                } else if(diffDays <= 7 && diffDays > 0) {
+                    notifs.push(`<div class="p-3 border-b border-gray-700 text-sm"><span class="text-neon-blue font-bold">Expiring Soon:</span> ${m.name}'s plan expires in ${diffDays} days.</div>`);
+                }
+            });
+
+            if(notifs.length > 0) {
+                document.getElementById('notif-badge').innerText = notifs.length;
+                document.getElementById('notif-badge').classList.remove('hidden');
+                list.innerHTML = notifs.join('');
+            } else {
+                document.getElementById('notif-badge').classList.add('hidden');
+                list.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No new notifications</div>';
+            }
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notif-dropdown').classList.toggle('hidden');
+        }
+        function clearNotifications() {
+            document.getElementById('notif-list').innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">No new notifications</div>';
+            document.getElementById('notif-badge').classList.add('hidden');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'member-modal' && !document.getElementById('member-id').value) {
+                document.getElementById('member-form').reset();
+                document.getElementById('member-start').valueAsDate = new Date();
+                document.getElementById('member-modal-title').innerText = 'Add New Member';
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            const color = type === 'success' ? 'border-neon-green' : 'border-neon-red';
+            const icon = type === 'success' ? 'fa-check-circle text-neon-green' : 'fa-exclamation-circle text-neon-red';
+            
+            toast.className = `glass border-l-4 ${color} px-4 py-3 rounded shadow-lg flex items-center gap-3 transform transition-all translate-x-full opacity-0`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span class="text-sm font-medium text-white">${msg}</span>`;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => { toast.classList.remove('translate-x-full', 'opacity-0'); }, 10);
+            
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!document.getElementById('notif-dropdown').contains(e.target) && !e.target.closest('button[onclick="toggleNotifications()"]')) {
+                document.getElementById('notif-dropdown').classList.add('hidden');
+            }
+        });
+
+        // Start App
+        init();
+
+    </script>
+</body>
+</html>
